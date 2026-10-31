@@ -1,20 +1,19 @@
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import Client, filters
+
+from config import API_ID, API_HASH, BOT_TOKEN
+
+app = Client(
+    "TMBot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
+)
+
 
 @app.on_message(filters.command("start"))
 async def start(client, message):
 
-    buttons = InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton(
-                    "📢 Join Channel",
-                    url="https://t.me/YourChannel"
-                )
-            ]
-        ]
-    )
+    await message.reply_text("Hello!")
 
-    await message.reply_text(
-        text="👋 Welcome to TMBot!\n\nPlease join our channel.",
-        reply_markup=buttons
-    )
+
+app.run()
