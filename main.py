@@ -4,47 +4,54 @@ from aiohttp import web
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-# Environment variables
-API_ID = int(os.environ.get("API_ID", 0))
-API_HASH = os.environ.get("API_HASH", "")
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+# Render port
 PORT = int(os.environ.get("PORT", 8080))
 
-# Initialize bot client
-bot = Client(
-    "simple_bot",
+# Telegram Credentials
+API_ID = int(os.environ.get("API_ID", 0))
+API_HASH = os.environ.get("API_HASH", "").strip()
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "").strip()
+
+# Print check to verify env variables exist
+print(f"DEBUG: API_ID is {'SET' if API_ID else 'EMPTY'}")
+print(f"DEBUG: API_HASH is {'SET' if API_HASH else 'EMPTY'}")
+print(f"DEBUG: BOT_TOKEN is {'SET' if BOT_TOKEN else 'EMPTY'}")
+
+app = Client(
+    name="my_bot",
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN
 )
 
-# /start command handler
-@bot.on_message(filters.command("start") & filters.private)
+# Case-insensitive /start handler + normal text fallback
+@app.on_message(filters.command(["start", "Start", "START"]) & filters.private)
 async def start_handler(client: Client, message: Message):
-    user_name = message.from_user.first_name
-    await message.reply_text(f"Hi {user_name}! 👋\nBot successfully chal raha hai.")
+    print(f"DEBUG: /start received from {message.from_user.id}")
+    await message.reply_text(f"Hi {message.from_user.first_name}! 👋\nBot ekdum theek chal raha hai.")
 
-# Dummy web server for Render health check
+# Dummy route for Render health check
 async def handle_ping(request):
-    return web.Response(text="Bot is running fine!")
+    return web.Response(text="Bot is running!")
 
-async def start_web_server():
-    app = web.Application()
-    app.router.add_get("/", handle_ping)
-    runner = web.AppRunner(app)
+async def start_web():
+    server = web.Application()
+    server.router.add_get("/", handle_ping)
+    runner = web.AppRunner(server)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", PORT)
     await site.start()
+    print(f"Web server listening on port {PORT}")
 
 async def main():
-    # Start web server first
-    await start_web_server()
-    # Start bot
-    await bot.start()
-    print("Bot and Web Server started!")
-    # Keep running
+    await start_web()
+    print("Starting Telegram Bot...")
+    await app.start()
+    me = await app.get_me()
+    print(f"Bot connected as @{me.username} ({me.id})")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
     
