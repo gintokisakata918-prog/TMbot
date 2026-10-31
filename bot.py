@@ -1,21 +1,20 @@
-from pyrogram import Client, filters
-
-from config import API_ID, API_HASH, BOT_TOKEN
-
-app = Client(
-    "MangaBot",
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN
-)
-
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 @app.on_message(filters.command("start"))
 async def start(client, message):
 
-    await message.reply_text(
-        "Welcome to MangaBot!"
+    buttons = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "📢 Join Channel",
+                    url="https://t.me/YourChannel"
+                )
+            ]
+        ]
     )
 
-
-app.run()
+    await message.reply_text(
+        text="👋 Welcome to TMBot!\n\nPlease join our channel.",
+        reply_markup=buttons
+    )
